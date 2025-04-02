@@ -199,16 +199,26 @@ const hive_models = {
     });
   },
   model(name, payload) {
-    const model = hive._models.find(y => y.name == name);
+    const model = hive._models.find(z => z.name == name);
     return model ? model.handler(payload) : null;
   },
   mount(name, payloads) {
-    const model = hive._models.find(y => y.name == name);
+    const model = hive._models.find(z => z.name == name);
     if(payloads.length == 0) {
       return model.fallback();
     } else {
-      return payloads.map(y => model.handler(y)).join("");
+      return payloads.map(z => model.handler(z)).join("");
     }
+  }
+}
+
+const hive_modules = {
+  _modules: [],
+  _init_modules() {
+    _modules.forEach(v => v());
+  },
+  use(handler) {
+    hive._modules.push(handler);
   }
 }
 
@@ -218,13 +228,14 @@ window.hive = {
     hive._init_states();
     hive._init_pages();
     hive._init_fields();
-    hive._init_externals();
+    hive._init_modules();
   },
   ...hive_state,
   ...hive_database,
   ...hive_pages,
   ...hive_fields,
-  ...hive_models
+  ...hive_models,
+  ...hive_modules
 }
 
 })();
