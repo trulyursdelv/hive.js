@@ -9,9 +9,9 @@ const hive_state = {
   _init_states() {
     if(hive._is_state_loaded) return;
     hive._is_state_loaded = true;
-    const list = localStorage.getItem("hive-state:all") || "[]";
+    const list = JSON.parse(localStorage.getItem("hive-state:all") || "[]");
     let destroy = [];
-    JSON.parse(list).forEach((path, i) => {
+    list.forEach((path, i) => {
       const content = JSON.parse(localStorage.getItem(path));
       if(content.expire >= Date.now()) {
         destroy.push(path);
@@ -76,9 +76,8 @@ const hive_database = {
         main.createIndex("value", "value", { unique: false });
       }
       request.onsuccess = evt => {
-        resolve(() => {
-          hive._database = evt.target.result
-        });
+        hive._database = evt.target.result;
+        resolve();
       }
       request.onerror = evt => {
         reject(evt.target.error);
@@ -161,16 +160,18 @@ const hive_pages = {
   _init_pages() {
     document.querySelectorAll("[data-page]").forEach(f => {
       const name = f.getAttribute("data-page");
-      hive._pages.push({
+      const page = {
         target: f, name,
         is_active: f.hasAttribute("data-active"),
-        show(target) {
-          target.style.display = "block";
+        show() {
+          this.target.style.display = "block";
         },
-        hide(target) {
-          target.style.display = "none";
+        hide() {
+          this.target.style.display = "none";
         }
-      });
+      }
+      if(!page.is_active) page.hide();
+      hive._pages.push(page);
       hive.fields[name] = [];
     });
   },
@@ -212,30 +213,30 @@ const hive_models = {
   }
 }
 
-const hive_modules = {
-  _modules: [],
-  _init_modules() {
-    _modules.forEach(v => v());
-  },
+const hive_externals = {
+  _externals: [],
   use(handler) {
-    hive._modules.push(handler);
+    hive._externals.push(handler);
+  },
+  _init_externals() {
+    hive._externals.forEach(g => g());
   }
 }
 
 window.hive = {
-  version: 1.1,
+  version: "1.2",
   init() {
     hive._init_states();
     hive._init_pages();
     hive._init_fields();
-    hive._init_modules();
+    hive._init_externals();
   },
   ...hive_state,
   ...hive_database,
   ...hive_pages,
   ...hive_fields,
   ...hive_models,
-  ...hive_modules
+  ...hive_externals
 }
 
 })();
