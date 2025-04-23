@@ -182,6 +182,13 @@ const hive_pages = {
       hive._pages.push(page);
       hive.fields[name] = [];
     });
+    document.querySelectorAll("[data-navigate]").forEach(f => {
+      while(f.getAttribute("data-navigate") == null) {
+        f = f.parentNode;
+      }
+      const page = f.getAttribute("data-navigate");
+      hive.navigate(page);
+    });
   },
   configure_page(name, { show, hide }) {
     hive._pages.forEach((f, i) => {
